@@ -25,8 +25,6 @@ namespace MicMuter
         WaveIn WaveIn = null;
         WaveOut WaveOut;
 
-        BiQuadFilter[,] Filters;
-
         private void Btn_startmuter_Click(object sender, EventArgs e)
         {
             if (WaveIn != null)
@@ -54,8 +52,6 @@ namespace MicMuter
             BufferedWave = new BufferedWaveProvider(WaveIn.WaveFormat);
             BufferedWave.DiscardOnBufferOverflow = true;
 
-            CreateFilters(BufferedWave.WaveFormat.Channels, BufferedWave.WaveFormat.SampleRate, Eq.NonVoiceCutEq);
-
             WaveIn.DataAvailable += WaveIn_DataAvailable;
 
             WaveOut.Init(BufferedWave);
@@ -63,20 +59,6 @@ namespace MicMuter
             WaveOut.Play();
 
             lbl_muterenb.Text = "Muter Started";
-        }
-
-        private void CreateFilters(int channel, float sampleRate, EqBand[] eqs)
-        {
-            Filters = new BiQuadFilter[channel, eqs.Length];
-
-            for (int b = 0; b < eqs.Length; b++)
-            {
-                var eqi = eqs[b];
-                for (int c = 0; c < channel; c++)
-                {
-                    Filters[c, b] = BiQuadFilter.PeakingEQ(sampleRate, eqi.Frequency, eqi.Bandwidth, eqi.Gain);
-                }
-            }
         }
 
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
