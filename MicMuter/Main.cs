@@ -18,6 +18,9 @@ namespace MicMuter
         public Main()
         {
             InitializeComponent();
+
+            cutoffVolume = Properties.Settings.Default.CutoffVolume;
+            sbar_micminlvl.Value = cutoffVolume;
         }
 
         BufferedWaveProvider BufferedWave;
@@ -61,6 +64,8 @@ namespace MicMuter
             lbl_muterenb.Text = "Muter Started";
         }
 
+        private int cutoffVolume = 0;
+
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
         {
             // Original Code: https://github.com/naudio/NAudio/blob/792d3cc0ea51cac8d5b8510b3b68268a8a697ae8/Docs/RecordingLevelMeter.md
@@ -79,12 +84,14 @@ namespace MicMuter
             int lvl = (int)(max * 100);
             lmt_mic.Value = (int)(max * 100);
 
-            if (lvl > sbar_micminlvl.Value)
+            if (lvl > cutoffVolume)
             {
+                lmt_out.Value = (int)(max * 100);
                 BufferedWave.AddSamples(e.Buffer, 0, e.BytesRecorded);
             }
             else
             {
+                lmt_out.Value = 0;
                 BufferedWave.AddSamples(new byte[e.BytesRecorded], 0, e.BytesRecorded);
             }
         }
@@ -131,5 +138,13 @@ namespace MicMuter
                 cbox_out.Items.Add(deviceInfo.ProductName);
             }
         }
+
+        private void sbar_micminlvl_Scroll(object sender, EventArgs e)
+        {
+            cutoffVolume = sbar_micminlvl.Value;
+            Properties.Settings.Default.CutoffVolume = cutoffVolume;
+            Properties.Settings.Default.Save();
+        }
+
     }
 }
